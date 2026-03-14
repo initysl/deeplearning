@@ -81,7 +81,8 @@ vocab = {token:integer for integer,token in enumerate(all_tokens)}
 # print(len(vocab.items()))
 
 for i, item in enumerate(list(vocab.items())[-5:]):
-    print(item)
+    # print(item)
+    pass
 
 # Adjust tokenizer from code listing
 class SimpleTokenizerV2: 
@@ -141,14 +142,14 @@ enc_sample = enc_content[50:]
 context_size = 6
 x = enc_sample[:context_size]
 y = enc_sample[1:context_size+1]
-print(f"x: {x}") 
-print(f"y: {y}")
+# print(f"x: {x}") 
+# print(f"y: {y}")
 
 # Create the next-word prdiction tasks
 for i in range (1, context_size+1):
     context = enc_sample[:i]
     desired = enc_sample[i]
-    print(tokenizer.decode(context), "----->", tokenizer.decode([desired]))
+    # print(tokenizer.decode(context), "----->", tokenizer.decode([desired]))
     
 # A  dataser for batched inputs and targets
 class GPTDatasetV1(Dataset):
@@ -181,7 +182,7 @@ def create_dataloader_v1(txt, batch_size=4, max_length=256, stride=128, shuffle=
 with open("verdict.txt", "r", encoding="utf-8") as filee:
     raw_text2 = filee.read()
 
-dataloader = create_dataloader_v1(raw_text2, batch_size=1, max_length=4, stride=1, shuffle=False)
+dataloader = create_dataloader_v1(raw_text2, batch_size=8, max_length=8, stride=8, shuffle=False)
 """The first_batch variable contains two tensors: 
 the first tensor stores the input token IDs, 
 and the second tensor stores the target token IDs. 
@@ -189,7 +190,20 @@ Since the max_length is set to 4, each of the two tensors contains 4 token IDs.
 Note that an input size of 4 is relatively small and only chosen for illustration purposes. 
 It is common to train LLMs with input sizes of at least 256"""
 data_iter = iter(dataloader)
-first_batch = next(data_iter)
-print(first_batch)
-second_batch = next(data_iter)
-print(second_batch)
+inputs, targets = next(data_iter)
+# print("Inputs:\n", inputs) 
+# print("\nTargets:\n", targets)
+# second_batch = next(data_iter)
+# print(second_batch)
+
+
+# Creating token embeddings
+input_ids = torch.tensor([2, 3, 5, 1])
+vocab_sz = 6
+output_dim = 3
+torch.manual_seed(123)
+embedding_layer = torch.nn.Embedding(vocab_sz, output_dim)
+print(embedding_layer.weight)
+
+# Applying embedding layer to a token ID to obtain the embedding vector
+print(embedding_layer(torch.tensor([3])))
