@@ -191,3 +191,5 @@ It is common to train LLMs with input sizes of at least 256"""
 data_iter = iter(dataloader)
 first_batch = next(data_iter)
 print(first_batch)
+second_batch = next(data_iter)
+print(second_batch)
