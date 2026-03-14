@@ -170,18 +170,24 @@ class GPTDatasetV1(Dataset):
     def __getitem__(self, idx):
         return self.input_ids[idx], self.target_ids[idx]
     
-    # A data loader to generate batches with input-with pairs
-    def create_dataloader_v1(txt, batch_size=4, max_length=256, stride=128, shuffle=True, drop_last=True): 
+
+# A data loader to generate batches with input-with pairs
+def create_dataloader_v1(txt, batch_size=4, max_length=256, stride=128, shuffle=True, drop_last=True): 
         tokenizer = tiktoken.get_encoding("gpt2") 
         dataset = GPTDatasetV1(txt, tokenizer, max_length, stride) 
         dataloader = DataLoader( dataset, batch_size=batch_size, shuffle=shuffle, drop_last=drop_last) 
         return dataloader
     
-    with open("verdict.txt", "r", encoding="utf-8") as filee:
-        raw_text2 = filee.read()
+with open("verdict.txt", "r", encoding="utf-8") as filee:
+    raw_text2 = filee.read()
 
-    dataloader = create_dataloader_v1(raw_text2, batch_size=1, max_length=4, stride=1, shuffle=False)
-
-    data_iter = iter(dataloader)
-    first_batch = next(data_iter)
-    print(first_batch)
+dataloader = create_dataloader_v1(raw_text2, batch_size=1, max_length=4, stride=1, shuffle=False)
+"""The first_batch variable contains two tensors: 
+the first tensor stores the input token IDs, 
+and the second tensor stores the target token IDs. 
+Since the max_length is set to 4, each of the two tensors contains 4 token IDs. 
+Note that an input size of 4 is relatively small and only chosen for illustration purposes. 
+It is common to train LLMs with input sizes of at least 256"""
+data_iter = iter(dataloader)
+first_batch = next(data_iter)
+print(first_batch)
