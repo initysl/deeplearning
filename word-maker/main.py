@@ -44,7 +44,7 @@ def run_game(difficulty: str = "medium", time_limit: int = 90):
 
     print(f"  Difficulty : {difficulty.upper()}")
     print(f"  Time Limit : {time_limit}s")
-    print("  Type a word and press ENTER. Type 'quit' to end early.\n")
+    print(f"\n  Commands: 'hint' for a clue | 'quit' to end\n")
 
     while not session.is_time_up():
         Display.show_letters(session.letters)

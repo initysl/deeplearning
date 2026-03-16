@@ -57,6 +57,8 @@ class Display:
     def show_result(cls, result: dict):
         if result["status"] == "accepted":
             print(cls._c(f"  👏  {result['word']}  —  {result['message']}", "green"))
+        elif result["status"] == "hint":
+            print(cls._c(f"  💡  {result['message']}", "red"))
         elif result["status"] == "duplicate":
             print(cls._c(f"  👀  {result['message']}", "yellow"))
         else:
