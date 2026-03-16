@@ -19,7 +19,7 @@ class Display:
         os.system('cls' if os.name == 'nt' else 'clear')
 
     @classmethod
-    def banner(cls, text: str):
+    def banner(cls, text: str = "WORD MAKER"):
         print(cls._c(text, "cyan"))
         print(cls._c("=" * len(text), "cyan"))
 
