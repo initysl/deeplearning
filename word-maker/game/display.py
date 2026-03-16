@@ -1,33 +1,37 @@
 import os
+import time
 
 class Display:
     COLORS = {
-        "green": "\033[92m",
+        "green":  "\033[92m",
+        "red":    "\033[91m",
         "yellow": "\033[93m",
-        "red": "\033[91m",
-        "reset": "\033[0m",
-        "bold": "\033[1m",
-        "cyan": "\033[96m"
+        "cyan":   "\033[96m",
+        "bold":   "\033[1m",
+        "reset":  "\033[0m",
     }
 
     @classmethod
-    def _c(cls, text: str, color: str) -> str:
-        return f"{cls.COLORS.get(color, '')}{text}{cls.COLORS['reset']}"
-    
-    @classmethod
-    def clear(cls):
-        os.system('cls' if os.name == 'nt' else 'clear')
+    def _c(cls, text, color):
+        return f"{cls.COLORS[color]}{text}{cls.COLORS['reset']}"
 
     @classmethod
-    def banner(cls, text: str = "WORD MAKER"):
-        print(cls._c(text, "cyan"))
-        print(cls._c("=" * len(text), "cyan"))
+    def clear(cls):
+        os.system("cls" if os.name == "nt" else "clear")
+
+    @classmethod
+    def banner(cls):
+        print(cls._c("""
+╔══════════════════════════════╗
+║        W O R D  M A K E R    ║
+╚══════════════════════════════╝
+        """, "cyan"))
 
     @classmethod
     def show_letters(cls, letters: list[str]):
-        boxes = " ".join(f"[ {cls._c(1, 'bold')}]" for l in letters)
-        print(f'\n Letters: {boxes}\n')
-    
+        boxes = "  ".join(f"[ {cls._c(l, 'bold')} ]" for l in letters)
+        print(f"\n  Letters:  {boxes}\n")
+
     @classmethod
     def show_status(cls, session):
         remaining = session.time_remaining()
@@ -62,7 +66,7 @@ class Display:
     def show_summary(cls, summary: dict):
         cls.clear()
         cls.banner()
-        print(cls._c("  💀 GAME OVER 💀\n", "bold"))
+        print(cls._c("  💀 ══ GAME OVER ══ 💀\n", "bold"))
         print(f"  Letters     : {' '.join(summary['letters'])}")
         print(f"  Your Score  : {cls._c(summary['total_score'], 'cyan')} / {summary['max_score']}")
         print(f"  Words Found : {cls._c(len(summary['found_words']), 'cyan')} / {summary['total_valid']}")

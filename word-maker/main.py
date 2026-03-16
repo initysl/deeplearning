@@ -1,38 +1,81 @@
+import threading
 from engine import DictionaryLoader, Validator, Solver, Scorer
+from game import LetterGenerator, GameSession, Display
 
-def main():
-    print("Loading dictionary...")
-    loader = DictionaryLoader("dictionary/words.txt")
-    print(f"Loaded {len(loader)} words.")
-
+def run_game(difficulty: str = "medium", time_limit: int = 90):
+    # --- Boot ---
+    Display.clear()
+    Display.banner()
+    print("  Loading dictionary...")
+    loader    = DictionaryLoader("dictionary/words.txt")
     validator = Validator(loader.words)
-    solver = Solver(loader.words)
-    scorer = Scorer()
+    solver    = Solver(loader.words)
+    scorer    = Scorer()
+    gen       = LetterGenerator()
+    print(f"  Ready. ({len(loader)} words loaded)\n")
 
-    # --- Test 1: Validate individual words ---
-    test_letters = list("STARTLE")
-    print(f"Letters: {test_letters}\n")
+    # --- Difficulty select ---
+    print("  Difficulty: (1) Easy  (2) Medium  (3) Hard")
+    choice = input("  Choose [default=2]: ").strip()
+    diff_map = {"1": "easy", "2": "medium", "3": "hard"}
+    difficulty = diff_map.get(choice, "medium")
 
-    for word in ["STAR", "STARE", "RATTLE", "LATEST", "STARTLE", "XYZ", "AT"]:
-        valid, reason = validator.is_valid(word, test_letters)
-        status = "✓" if valid else "✗"
-        print(f"  {status} {word:<10} — {reason}")
+    # --- Generate letters and session ---
+    letters = gen.generate_by_difficulty(difficulty)
+    session = GameSession(letters, validator, solver, scorer, time_limit=time_limit)
 
-    # --- Test 2: Find all valid words ---
-    print("\nAll valid words (top 10):")
-    all_words = solver.get_all_valid_words(test_letters)
-    for word, score in all_words[:10]:
-        print(f"  {word:<12} score: {score}")
+    # --- Timer thread ---
+    stop_event = threading.Event()
 
-    # --- Test 3: Best word ---
-    best = solver.best_word(test_letters)
-    print(f"\nBest word: {best[0]} (score: {best[1]})")
+    def timer_thread():
+        while not stop_event.is_set():
+            if session.is_time_up():
+                print(cls._c("\n\n  ⏰  Time's up!\n", "red"))  
+                stop_event.set()
+                break
+            import time; time.sleep(1)
 
-    # --- Test 4: Words grouped by length ---
-    print("\nWords by length:")
-    by_length = solver.words_by_length(test_letters)
-    for length, words in by_length.items():
-        print(f"  {length} letters: {', '.join(words[:5])}{'...' if len(words) > 5 else ''}")
+    # --- Main game loop ---
+    Display.clear()
+    Display.banner()
+    session.start()
+    t = threading.Thread(target=timer_thread, daemon=True)
+    t.start()
+
+    print(f"  Difficulty : {difficulty.upper()}")
+    print(f"  Time Limit : {time_limit}s")
+    print("  Type a word and press ENTER. Type 'quit' to end early.\n")
+
+    while not session.is_time_up():
+        Display.show_letters(session.letters)
+        Display.show_status(session)
+        Display.show_found_words(session)
+
+        try:
+            word = input("  Your word: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            break
+
+        if word.lower() == "quit":
+            break
+        if word.lower() == "hint":
+            missed = session.missed_words()
+            if missed:
+                # Reveal first letter of the best missed word as a hint
+                best_missed = missed[0][0]
+                print(f"\n  Hint: Try a {len(best_missed)}-letter word starting with '{best_missed[0]}'...\n")
+            continue
+
+        result = session.submit_word(word)
+        Display.show_result(result)
+        import time; time.sleep(0.8)
+        Display.clear()
+        Display.banner()
+
+    # --- End ---
+    stop_event.set()
+    session.end()
+    Display.show_summary(session.summary())
 
 if __name__ == "__main__":
-    main()
+    run_game()

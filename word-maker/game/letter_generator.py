@@ -1,5 +1,3 @@
-# game/letter_generator.py
-
 import random
 from collections import Counter
 

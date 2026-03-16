@@ -1,21 +1,33 @@
 import time
 from engine.validator import Validator
-from engine.scorer import Scorer
 from engine.solver import Solver
+from engine.scorer import Scorer
 
 class GameSession:
-    def __init__(self, letters: list[str], validator: Validator, scorer: Scorer, solver: Solver, time_limit: int = 90):
-        self.letters = letters
-        self.validator = validator
-        self.scorer = scorer
-        self.solver = solver
-        self.time_limit = time_limit
+    def __init__(
+        self,
+        letters: list[str],
+        validator: Validator,
+        solver: Solver,
+        scorer: Scorer,
+        time_limit: int = 90,       # seconds; set to None for untimed mode
+    ):
+        self.letters        = letters
+        self.validator      = validator
+        self.solver         = solver
+        self.scorer         = scorer
+        self.time_limit     = time_limit
+
         self.found_words: list[str]     = []
         self.rejected_words: list[str]  = []
         self.total_score: int           = 0
         self.start_time: float          = None
         self.end_time: float            = None
         self._all_valid: list[tuple]    = None   # lazy-loaded
+
+    # ------------------------------------------------------------------ #
+    #  Lifecycle                                                           #
+    # ------------------------------------------------------------------ #
 
     def start(self):
         self.start_time = time.time()
@@ -24,23 +36,25 @@ class GameSession:
         self.end_time = time.time()
 
     def is_time_up(self) -> bool:
-        if self.time_time is None or self.start_time is None:
+        if self.time_limit is None or self.start_time is None:
             return False
-        return self.elapsed >= self.time_limit
-    
+        return self.elapsed() >= self.time_limit
 
     def elapsed(self) -> float:
         if self.start_time is None:
             return 0.0
         end = self.end_time or time.time()
         return end - self.start_time
-    
-    def time_ramaining(self) -> float:
-        if self.start_time is None:
+
+    def time_remaining(self) -> float:
+        if self.time_limit is None:
             return float("inf")
         return max(0.0, self.time_limit - self.elapsed())
-    
-    # GamePlay logic
+
+    # ------------------------------------------------------------------ #
+    #  Gameplay                                                            #
+    # ------------------------------------------------------------------ #
+
     def submit_word(self, word: str) -> dict:
         """
         Processes a player's word submission.
@@ -52,22 +66,25 @@ class GameSession:
         if word in self.found_words:
             return {"status": "duplicate", "word": word, "score": 0,
                     "message": f"You already found '{word}'."}
-        
-        # Validate the word
-        valid, reason = self.validator.validate(word, self.letters)
+
+        # Validate against engine
+        valid, reason = self.validator.is_valid(word, self.letters)
         if not valid:
             self.rejected_words.append(word)
             return {"status": "invalid", "word": word, "score": 0,
-                    "message": f"'{word}' is not valid: {reason}."}
-        
-        # Valid word - calculate score
+                    "message": reason}
+
+        # Accept
         points = self.scorer.score(word)
         self.found_words.append(word)
         self.total_score += points
         return {"status": "accepted", "word": word, "score": points,
-                "message": f"'{word}' accepted! You earned {points} points."}
+                "message": f"+{points} points!"}
 
-    # Intropection
+    # ------------------------------------------------------------------ #
+    #  Introspection                                                       #
+    # ------------------------------------------------------------------ #
+
     def all_valid_words(self) -> list[tuple[str, int]]:
         """Lazy-loads and caches the full solution set."""
         if self._all_valid is None:
