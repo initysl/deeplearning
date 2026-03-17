@@ -25,9 +25,8 @@ class GameSession:
         self.end_time: float            = None
         self._all_valid: list[tuple]    = None   # lazy-loaded
 
-    # ------------------------------------------------------------------ #
-    #  Lifecycle                                                           #
-    # ------------------------------------------------------------------ #
+    
+    # --- Lifecycle ---                                                          
 
     def start(self):
         self.start_time = time.time()
@@ -51,9 +50,8 @@ class GameSession:
             return float("inf")
         return max(0.0, self.time_limit - self.elapsed())
 
-    # ------------------------------------------------------------------ #
-    #  Gameplay                                                            #
-    # ------------------------------------------------------------------ #
+    
+    # --- Gameplay ---                                                           
 
     def submit_word(self, word: str) -> dict:
         """
@@ -81,9 +79,8 @@ class GameSession:
         return {"status": "accepted", "word": word, "score": points,
                 "message": f"+{points} points!"}
 
-    # ------------------------------------------------------------------ #
-    #  Introspection                                                       #
-    # ------------------------------------------------------------------ #
+
+    # --- Introspection ---                                                       
 
     def all_valid_words(self) -> list[tuple[str, int]]:
         """Lazy-loads and caches the full solution set."""
